@@ -35,7 +35,7 @@ public class MyBot extends Bot {
     protected void executeTurn(GameState gameState, Controller controller) {
         GameCharacter character = controller.getGameCharacter();
 
-        List<Vector2> targets;
+        List<Target> targets;
 
         if (character.getHealth() <= (100 - 35)) {
             targets = findHealthBoxes(gameState, character);
@@ -43,14 +43,14 @@ public class MyBot extends Bot {
             targets = findEnemies(gameState, character);
         }
 
-        targets.sort(new Vector2DistanceComparator(character.getPlayerPos()));
+        targets.sort(new TargetDistanceComparator(character.getPlayerPos()));
 
         controller.selectWeapon(WeaponType.WATER_PISTOL);
 
         ShootInfo optimalTarget = null;
 
-        for (Vector2 enemy : targets) {
-            ShootInfo info = calculateShootInfo(gameState, controller, enemy, 200);
+        for (Target target : targets) {
+            ShootInfo info = calculateShootInfo(gameState, controller, target, 200);
 
             if (info == null) continue;
 
@@ -59,6 +59,7 @@ public class MyBot extends Bot {
         }
 
         if (optimalTarget != null) {
+            System.out.println("Obstacles:" + optimalTarget.obstructions);
             controller.aim(optimalTarget.angle, optimalTarget.strength);
             controller.shoot();
         }
@@ -66,10 +67,10 @@ public class MyBot extends Bot {
         return;
     }
 
-    private ShootInfo calculateShootInfo(GameState gameState, Controller controller, Vector2 target, int maxIterations) {
+    private ShootInfo calculateShootInfo(GameState gameState, Controller controller, Target target, int maxIterations) {
         Vector2 startPosition = controller.getGameCharacter().getPlayerPos();
 
-        Vector2 t = new Vector2(target).sub(startPosition);
+        Vector2 t = target.getPosition().sub(startPosition);
 
         float minimumVelocity = (float) Math.sqrt(g * (t.y + Math.sqrt(t.y * t.y + t.x * t.x)));
 
@@ -121,7 +122,7 @@ public class MyBot extends Bot {
         return new float[] { high, low };
     }
 
-    private int numberOfObstructions(GameState gameState, Vector2 startPosition, Vector2 target, float v, float angle, float deltaT) {
+    private int numberOfObstructions(GameState gameState, Vector2 startPosition, Target target, float v, float angle, float deltaT) {
         int tiles = 0;
         Tile lastTile = null;
 
@@ -145,8 +146,8 @@ public class MyBot extends Bot {
         return new IntVector2((int) (worldCoords.x / 16), (int) (worldCoords.y / 16));
     }
 
-    private List<Vector2> findEnemies(GameState gameState, GameCharacter character) {
-        List<Vector2> enemies = new ArrayList<>();
+    private List<Target> findEnemies(GameState gameState, GameCharacter character) {
+        List<Target> enemies = new ArrayList<>();
 
         for (int team = 0; team < gameState.getTeamCount(); team++) {
             if (team == character.getTeam()) continue;
@@ -155,21 +156,21 @@ public class MyBot extends Bot {
                 GameCharacter enemy = gameState.getCharacterFromTeams(team, c);
                 if (!enemy.isAlive()) continue;
 
-                enemies.add(enemy.getPlayerPos());
+                enemies.add(new Target(enemy));
             }
         }
 
         return enemies;
     }
 
-    private List<Vector2> findHealthBoxes(GameState gameState, GameCharacter character) {
-        List<Vector2> boxes = new ArrayList<>();
+    private List<Target> findHealthBoxes(GameState gameState, GameCharacter character) {
+        List<Target> boxes = new ArrayList<>();
 
         for (int x = 0; x < gameState.getBoardSizeX(); x++) {
             for (int y = 0; y < gameState.getBoardSizeY(); y++) {
                 Tile tile = gameState.getTile(x, y);
                 if (tile != null && tile.getTileType() == Tile.TileType.HEALTH_BOX) {
-                    boxes.add(new Vector2(x * 16, y * 16));
+                    boxes.add(new Target(tile));
                 }
             }
         }
@@ -177,16 +178,16 @@ public class MyBot extends Bot {
         return boxes;
     }
 
-    private class Vector2DistanceComparator implements Comparator<Vector2> {
-        private Vector2 origin;
+    private class TargetDistanceComparator implements Comparator<Target> {
+        private final Vector2 origin;
 
-        public Vector2DistanceComparator(Vector2 origin) {
+        public TargetDistanceComparator(Vector2 origin) {
             this.origin = origin;
         }
 
         @Override
-        public int compare(Vector2 v1, Vector2 v2) {
-            return Float.compare(v1.dst(origin), v2.dst(origin));
+        public int compare(Target v1, Target v2) {
+            return Float.compare(v1.getPosition().dst(origin), v2.getPosition().dst(origin));
         }
     }
 
@@ -199,6 +200,55 @@ public class MyBot extends Bot {
             this.obstructions = obstructions;
             this.angle = angle;
             this.strength = strength;
+        }
+    }
+
+    private class Target {
+        private GameCharacter enemy = null;
+        private Tile tile = null;
+
+        public Target(GameCharacter enemy) {
+            this.enemy = enemy;
+            this.tile = null;
+        }
+
+        public Target(Tile tile) {
+            this.tile = tile;
+            this.enemy = null;
+        }
+
+        public GameCharacter getEnemy() {
+            return enemy;
+        }
+
+        public void setEnemy(GameCharacter enemy) {
+            this.enemy = enemy;
+            this.tile = null;
+        }
+
+        public Tile getTile() {
+            return tile;
+        }
+
+        public void setTile(Tile tile) {
+            this.tile = tile;
+            this.enemy = null;
+        }
+
+        public boolean isTile() {
+            return tile != null;
+        }
+
+        public boolean isEnemy() {
+            return enemy != null;
+        }
+
+        public Vector2 getPosition() {
+            if (enemy == null) {
+                return tile.getWorldPosition();
+            } else {
+                return enemy.getPlayerPos();
+            }
         }
     }
 }
