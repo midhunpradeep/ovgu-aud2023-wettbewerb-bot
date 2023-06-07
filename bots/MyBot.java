@@ -28,7 +28,7 @@ public class MyBot extends Bot {
 
     @Override
     public String getName() {
-        return "Meowdin";
+        return "Obi-Wan Catnobi";
     }
 
     @Override
