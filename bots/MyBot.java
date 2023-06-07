@@ -11,7 +11,6 @@ import java.util.*;
 public class MyBot extends Bot {
     private static final float g = 9.81f * 16;
     private static final float MAX_VELOCITY = 400;
-    private static final int MAX_HEALTH = 100;
     private static final int HEAL_AMOUNT = 35;
     private static final int PISTOL_DAMAGE = 10;
 
@@ -46,7 +45,7 @@ public class MyBot extends Bot {
         TargetDistanceComparator comparator = new TargetDistanceComparator(character.getPlayerPos());
 
         if (shouldHeal(character)) {
-            targets = findHealthBoxes(gameState, character);
+            targets = findHealthBoxes(gameState);
         }
 
         targets.sort(comparator);
@@ -67,7 +66,7 @@ public class MyBot extends Bot {
                 break;
             }
 
-            ShootInfo info = calculateShootInfo(gameState, controller, target, 200);
+            ShootInfo info = calculateShootInfo(gameState, controller, target);
 
             if (info == null) continue;
 
@@ -102,7 +101,10 @@ public class MyBot extends Bot {
 
     }
 
-    private ShootInfo calculateShootInfo(GameState gameState, Controller controller, Target target, int maxIterations) {
+    private ShootInfo calculateShootInfo(GameState gameState, Controller controller, Target target) {
+        // should be greater than 1
+        final int MAX_ITERATIONS = 200;
+
         Vector2 startPosition = controller.getGameCharacter().getPlayerPos();
 
         Vector2 t = target.getPosition().sub(startPosition);
@@ -115,11 +117,9 @@ public class MyBot extends Bot {
         float optimalAngle = 0;
         int minimumObstructions = 100_000;
 
-        if (maxIterations <= 1) maxIterations = 2;
-
         OUTER:
-        for (int i = 0; i < maxIterations; i++) {
-            float v = MathUtils.lerp(minimumVelocity, MAX_VELOCITY, (float) i / (maxIterations - 1));
+        for (int i = 0; i < MAX_ITERATIONS; i++) {
+            float v = MathUtils.lerp(minimumVelocity, MAX_VELOCITY, (float) i / (MAX_ITERATIONS - 1));
 
             float[] angles;
 
@@ -130,7 +130,7 @@ public class MyBot extends Bot {
             }
 
             for (float angle : angles) {
-                int obstructions = numberOfObstructions(gameState, startPosition, target, v, angle, 0.05f);
+                int obstructions = numberOfObstructions(gameState, startPosition, target, v, angle);
 
                 if (obstructions < minimumObstructions) {
                     optimalVelocity = v;
@@ -157,14 +157,16 @@ public class MyBot extends Bot {
         return new float[] { high, low };
     }
 
-    private int numberOfObstructions(GameState gameState, Vector2 startPosition, Target target, float v, float angle, float deltaT) {
+    private int numberOfObstructions(GameState gameState, Vector2 startPosition, Target target, float v, float angle) {
+        final double DELTA_T = 0.05;
+
         int tiles = 0;
         Tile lastTile = null;
 
         Vector2 targetPosition = target.getPosition();
         double timeToTarget = (targetPosition.x - startPosition.x) / (v * Math.cos(angle));
 
-        for (double t = 0; t < timeToTarget; t += deltaT) {
+        for (double t = 0; t < timeToTarget; t += DELTA_T) {
             float x = (float) (startPosition.x + v * t * Math.cos(angle));
             float y = (float) (startPosition.y + v * t * Math.sin(angle) - (0.5) * g * t * t);
 
@@ -204,7 +206,7 @@ public class MyBot extends Bot {
         return enemies;
     }
 
-    private List<Target> findHealthBoxes(GameState gameState, GameCharacter character) {
+    private List<Target> findHealthBoxes(GameState gameState) {
         List<Target> boxes = new ArrayList<>();
 
         for (int x = 0; x < gameState.getBoardSizeX(); x++) {
@@ -249,8 +251,8 @@ public class MyBot extends Bot {
     }
 
     private class Target {
-        private GameCharacter enemy = null;
-        private Tile tile = null;
+        private GameCharacter enemy;
+        private Tile tile;
 
         public Target(GameCharacter enemy) {
             this.enemy = enemy;
