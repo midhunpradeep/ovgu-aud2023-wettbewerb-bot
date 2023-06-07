@@ -121,24 +121,6 @@ public class MyBot extends Bot {
         return new float[] { high, low };
     }
 
-//    private int numberOfObstructions(GameState gameState, Vector2 startPosition, Vector2 target, float v, float angle) {
-//        int n = 0;
-//
-//        float a = (float) Math.tan(angle);
-//        float b = (float) (g / (2 * v * v * Math.pow(Math.cos(angle), 2)));
-//
-//
-//        for (float x = startPosition.x; x < target.x; x += 16) {
-//            float y = (float) (startPosition.y + a * (x - startPosition.x) - b * Math.pow(x - startPosition.x, 2));
-//
-//            if (gameState.getTile(worldToTileCoords(new Vector2(x, y))) != null) {
-//                n++;
-//            }
-//        }
-//
-//        return n;
-//    }
-
     private int numberOfObstructions(GameState gameState, Vector2 startPosition, Vector2 target, float v, float angle, float deltaT) {
         Set<Tile> tiles = new HashSet<>();
 
