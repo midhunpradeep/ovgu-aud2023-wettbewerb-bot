@@ -122,7 +122,8 @@ public class MyBot extends Bot {
     }
 
     private int numberOfObstructions(GameState gameState, Vector2 startPosition, Vector2 target, float v, float angle, float deltaT) {
-        Set<Tile> tiles = new HashSet<>();
+        int tiles = 0;
+        Tile lastTile = null;
 
         double timeToTarget = (2 * v * Math.sin(angle)) / g;
 
@@ -131,12 +132,13 @@ public class MyBot extends Bot {
             float y = (float) (startPosition.y + v * t * Math.sin(angle) - (0.5) * g * t * t);
 
             Tile tile = gameState.getTile(worldToTileCoords(new Vector2(x, y)));
-            if (tile != null) {
-                tiles.add(tile);
+            if (tile != null && (lastTile == null || !lastTile.equals(tile))) {
+                lastTile = tile;
+                tiles++;
             }
         }
 
-        return tiles.size();
+        return tiles;
     }
 
     private IntVector2 worldToTileCoords(Vector2 worldCoords) {
