@@ -11,6 +11,8 @@ import java.util.*;
 public class MyBot extends Bot {
     private static final float g = 9.81f * 16;
     private static final float MAX_VELOCITY = 400;
+    private static final int MAX_HEALTH = 100;
+    private static final int PISTOL_DAMAGE = 35;
 
     @Override
     public String getStudentName() {
@@ -35,13 +37,13 @@ public class MyBot extends Bot {
     protected void executeTurn(GameState gameState, Controller controller) {
         GameCharacter character = controller.getGameCharacter();
 
-        List<Target> targets;
+        List<Target> targets = new ArrayList<>();
 
-        if (character.getHealth() <= (100 - 35)) {
+        if (character.getHealth() <= (MAX_HEALTH - PISTOL_DAMAGE)) {
             targets = findHealthBoxes(gameState, character);
-        } else {
-            targets = findEnemies(gameState, character);
         }
+
+        targets.addAll(findEnemies(gameState, character));
 
         targets.sort(new TargetDistanceComparator(character.getPlayerPos()));
 
@@ -61,9 +63,9 @@ public class MyBot extends Bot {
         if (optimalTarget != null) {
             controller.aim(optimalTarget.angle, optimalTarget.strength);
             controller.shoot();
+            return;
         }
 
-        return;
     }
 
     private ShootInfo calculateShootInfo(GameState gameState, Controller controller, Target target, int maxIterations) {
