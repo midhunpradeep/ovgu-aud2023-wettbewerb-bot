@@ -38,14 +38,18 @@ public class MyBot extends Bot {
         GameCharacter character = controller.getGameCharacter();
 
         List<Target> targets = new ArrayList<>();
+        TargetDistanceComparator comparator = new TargetDistanceComparator(character.getPlayerPos());
 
         if (character.getHealth() <= (MAX_HEALTH - PISTOL_DAMAGE)) {
             targets = findHealthBoxes(gameState, character);
         }
 
-        targets.addAll(findEnemies(gameState, character));
+        targets.sort(comparator);
 
-        targets.sort(new TargetDistanceComparator(character.getPlayerPos()));
+        List<Target> enemies = findEnemies(gameState, character);
+        enemies.sort(comparator);
+
+        targets.addAll(enemies);
 
         controller.selectWeapon(WeaponType.WATER_PISTOL);
 
