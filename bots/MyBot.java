@@ -13,6 +13,7 @@ public class MyBot extends Bot {
     private static final float MAX_VELOCITY = 400;
     private static final int MAX_HEALTH = 100;
     private static final int HEAL_AMOUNT = 35;
+    private static final int PISTOL_DAMAGE = 10;
 
     private static int turnCounter = 0;
 
@@ -44,7 +45,7 @@ public class MyBot extends Bot {
         List<Target> targets = new ArrayList<>();
         TargetDistanceComparator comparator = new TargetDistanceComparator(character.getPlayerPos());
 
-        if (character.getHealth() <= (MAX_HEALTH - HEAL_AMOUNT)) {
+        if (shouldHeal(character)) {
             targets = findHealthBoxes(gameState, character);
         }
 
@@ -59,10 +60,31 @@ public class MyBot extends Bot {
 
         ShootInfo optimalTarget = null;
 
+        boolean shouldTargetEnemies = true;
+
         for (Target target : targets) {
+            if (!shouldTargetEnemies && target.isEnemy()) {
+                break;
+            }
+
             ShootInfo info = calculateShootInfo(gameState, controller, target, 200);
 
             if (info == null) continue;
+
+            // if bot can gain health, don't shoot enemies
+            if (target.isTile()) {
+                assert target.getTile().getTileType() == Tile.TileType.HEALTH_BOX;
+
+                int expectedDamage = PISTOL_DAMAGE * info.obstructions;
+                if (expectedDamage >= character.getHealth()) {
+                    continue;
+                }
+
+                int expectedHealAmount = HEAL_AMOUNT - expectedDamage;
+                if (expectedHealAmount > 0) {
+                    shouldTargetEnemies = false;
+                }
+            }
 
             if (optimalTarget == null || info.obstructions < optimalTarget.obstructions) {
                 optimalTarget = info;
@@ -195,6 +217,10 @@ public class MyBot extends Bot {
         }
 
         return boxes;
+    }
+
+    private boolean shouldHeal(GameCharacter character) {
+        return character.getHealth() <= (100 - HEAL_AMOUNT);
     }
 
     private class TargetDistanceComparator implements Comparator<Target> {
