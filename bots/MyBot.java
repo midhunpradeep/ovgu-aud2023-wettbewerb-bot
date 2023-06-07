@@ -50,7 +50,7 @@ public class MyBot extends Bot {
         ShootInfo optimalTarget = null;
 
         for (Vector2 enemy : targets) {
-            ShootInfo info = calculateShootInfo(gameState, character, enemy, 200);
+            ShootInfo info = calculateShootInfo(gameState, controller, enemy, 200);
 
             if (info == null) continue;
 
@@ -59,7 +59,6 @@ public class MyBot extends Bot {
         }
 
         if (optimalTarget != null) {
-            controller.move(optimalTarget.moveX);
             controller.aim(optimalTarget.angle, optimalTarget.strength);
             controller.shoot();
         }
@@ -67,86 +66,50 @@ public class MyBot extends Bot {
         return;
     }
 
-    private ShootInfo calculateShootInfo(GameState gameState, GameCharacter character, Vector2 target, int maxIterations) {
+    private ShootInfo calculateShootInfo(GameState gameState, Controller controller, Vector2 target, int maxIterations) {
+        Vector2 startPosition = controller.getGameCharacter().getPlayerPos();
+
+        Vector2 t = new Vector2(target).sub(startPosition);
+
+        float minimumVelocity = (float) Math.sqrt(g * (t.y + Math.sqrt(t.y * t.y + t.x * t.x)));
+
+        if (minimumVelocity > MAX_VELOCITY) return null;
 
         float optimalVelocity = 0;
         float optimalAngle = 0;
-        int optimalOffset = 0;
         int minimumObstructions = 100_000;
 
-        FIND_IDEAL_POSITION:
-        for (int offset : getPossiblePositionOffsets(gameState, character)) {
-            Vector2 position = new Vector2(character.getPlayerPos()).add(offset, 0);
+        if (maxIterations <= 1) maxIterations = 2;
 
-            Vector2 t = new Vector2(target).sub(position);
+        OUTER:
+        for (int i = 0; i < maxIterations; i++) {
+            float v = MathUtils.lerp(minimumVelocity, MAX_VELOCITY, (float) i / (maxIterations - 1));
 
-            float minimumVelocity = (float) Math.sqrt(g * (t.y + Math.sqrt(t.y * t.y + t.x * t.x)));
+            float[] angles;
 
-            if (minimumVelocity > MAX_VELOCITY) return null;
+            if (i == 0) {
+                angles = new float[] { (float) Math.atan2(v * v, g * t.x) };
+            } else {
+                angles = calculateAngles(v, t.x, t.y);
+            }
 
-            if (maxIterations <= 1) maxIterations = 2;
+            for (float angle : angles) {
+                int obstructions = numberOfObstructions(gameState, startPosition, target, v, angle, 0.05f);
 
-            FIND_IDEAL_VELOCITY:
-            for (int i = 0; i < maxIterations; i++) {
-                float v = MathUtils.lerp(minimumVelocity, MAX_VELOCITY, (float) i / (maxIterations - 1));
-
-                float[] angles;
-
-                if (i == 0) {
-                    angles = new float[] { (float) Math.atan2(v * v, g * t.x) };
-                } else {
-                    angles = calculateAngles(v, t.x, t.y);
-                }
-
-                FIND_IDEAL_ANGLE:
-                for (float angle : angles) {
-                    int obstructions = numberOfObstructions(gameState, position, target, v, angle, 0.05f);
-
-                    if (obstructions > minimumObstructions) {
-                        continue;
-                    }
-
+                if (obstructions < minimumObstructions) {
                     optimalVelocity = v;
                     optimalAngle = angle;
                     minimumObstructions = obstructions;
-                    optimalOffset = offset;
-
-                    if (obstructions == 0) break FIND_IDEAL_POSITION;
                 }
+
+                if (obstructions == 0) break OUTER;
             }
         }
 
         Vector2 angleV = new Vector2((float) Math.cos(optimalAngle), (float) Math.sin(optimalAngle));
         float strength = optimalVelocity / MAX_VELOCITY;
 
-        return new ShootInfo(minimumObstructions, angleV, strength, optimalOffset);
-    }
-
-    private List<Integer> getPossiblePositionOffsets(GameState gameState, GameCharacter character) {
-        List<Integer> offsets = new ArrayList<>();
-        offsets.add(0);
-
-        for (int rightOffset = 1; rightOffset <= character.getStamina(); rightOffset++) {
-            if (getTileBelow(gameState, character.getPlayerPos().add(rightOffset, 0)) == null) {
-                break;
-            }
-
-            offsets.add(rightOffset);
-        }
-
-        for (int leftOffset = 1; leftOffset <= character.getStamina(); leftOffset++) {
-            if (getTileBelow(gameState, character.getPlayerPos().add(-leftOffset, 0)) == null) {
-                break;
-            }
-
-            offsets.add(-leftOffset);
-        }
-
-        return offsets;
-    }
-
-    private Tile getTileBelow(GameState gameState, Vector2 position) {
-        return gameState.getTile(worldToTileCoords(new Vector2(position.x, position.y - 16)));
+        return new ShootInfo(minimumObstructions, angleV, strength);
     }
 
     private float[] calculateAngles(float v, float x, float y) {
@@ -229,13 +192,11 @@ public class MyBot extends Bot {
         public final int obstructions;
         public final Vector2 angle;
         public final float strength;
-        public final int moveX;
 
-        public ShootInfo(int obstructions, Vector2 angle, float strength, int moveX) {
+        public ShootInfo(int obstructions, Vector2 angle, float strength) {
             this.obstructions = obstructions;
             this.angle = angle;
             this.strength = strength;
-            this.moveX = moveX;
         }
     }
 }
