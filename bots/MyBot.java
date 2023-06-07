@@ -76,7 +76,6 @@ public class MyBot extends Bot {
         if (optimalTarget != null) {
             controller.aim(optimalTarget.angle, optimalTarget.strength);
             controller.shoot();
-            return;
         }
 
     }
@@ -148,7 +147,12 @@ public class MyBot extends Bot {
             float y = (float) (startPosition.y + v * t * Math.sin(angle) - (0.5) * g * t * t);
 
             Tile tile = gameState.getTile(worldToTileCoords(new Vector2(x, y)));
+
             if (tile != null && (lastTile == null || !lastTile.equals(tile))) {
+                if (target.isTile() && tile.equals(target.getTile())) {
+                    break;
+                }
+
                 lastTile = tile;
                 tiles++;
             }
