@@ -59,7 +59,6 @@ public class MyBot extends Bot {
         }
 
         if (optimalTarget != null) {
-            System.out.println("Obstacles:" + optimalTarget.obstructions);
             controller.aim(optimalTarget.angle, optimalTarget.strength);
             controller.shoot();
         }
@@ -126,7 +125,8 @@ public class MyBot extends Bot {
         int tiles = 0;
         Tile lastTile = null;
 
-        double timeToTarget = (2 * v * Math.sin(angle)) / g;
+        Vector2 targetPosition = target.getPosition();
+        double timeToTarget = (targetPosition.x - startPosition.x) / (v * Math.cos(angle));
 
         for (double t = 0; t < timeToTarget; t += deltaT) {
             float x = (float) (startPosition.x + v * t * Math.cos(angle));
