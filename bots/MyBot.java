@@ -14,6 +14,8 @@ public class MyBot extends Bot {
     private static final int MAX_HEALTH = 100;
     private static final int PISTOL_DAMAGE = 35;
 
+    private static int turnCounter = 0;
+
     @Override
     public String getStudentName() {
         return "Midhun Pradeep Nair";
@@ -35,6 +37,8 @@ public class MyBot extends Bot {
 
     @Override
     protected void executeTurn(GameState gameState, Controller controller) {
+        turnCounter++;
+
         GameCharacter character = controller.getGameCharacter();
 
         List<Target> targets = new ArrayList<>();
