@@ -1,0 +1,16 @@
+# Ignore everything
+*
+
+
+
+# But not these files...
+!.gitignore
+# etc...
+
+# ...even if they are in subdirectories
+!*/
+
+.idea/
+
+# if the files to be tracked are in subdirectories
+!/bots/MyBot.java
