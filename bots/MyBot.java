@@ -12,7 +12,7 @@ public class MyBot extends Bot {
     private static final float g = 9.81f * 16;
     private static final float MAX_VELOCITY = 400;
     private static final int MAX_HEALTH = 100;
-    private static final int PISTOL_DAMAGE = 35;
+    private static final int HEAL_AMOUNT = 35;
 
     private static int turnCounter = 0;
 
@@ -44,7 +44,7 @@ public class MyBot extends Bot {
         List<Target> targets = new ArrayList<>();
         TargetDistanceComparator comparator = new TargetDistanceComparator(character.getPlayerPos());
 
-        if (character.getHealth() <= (MAX_HEALTH - PISTOL_DAMAGE)) {
+        if (character.getHealth() <= (MAX_HEALTH - HEAL_AMOUNT)) {
             targets = findHealthBoxes(gameState, character);
         }
 
