@@ -64,8 +64,13 @@ public class MyBot extends Bot {
 
             if (info == null) continue;
 
-            optimalTarget = info;
-            break;
+            if (optimalTarget == null || info.obstructions < optimalTarget.obstructions) {
+                optimalTarget = info;
+            }
+
+            if (optimalTarget.obstructions == 0) {
+                break;
+            }
         }
 
         if (optimalTarget != null) {
