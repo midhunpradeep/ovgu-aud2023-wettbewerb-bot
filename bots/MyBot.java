@@ -196,7 +196,7 @@ public class MyBot extends Bot {
         boolean canMoveLeft = true;
         boolean canMoveRight = true;
 
-        for (int offset = 1; offset < 60 && (canMoveRight || canMoveLeft); offset++) {
+        for (int offset = 1; (offset * 16) < 60 && (canMoveRight || canMoveLeft); offset++) {
             if (canMoveRight &&
                     isValidStandingPosition(gameState, new IntVector2(characterTile.x + offset, characterTile.y))) {
                 options.add(offset * 16);
