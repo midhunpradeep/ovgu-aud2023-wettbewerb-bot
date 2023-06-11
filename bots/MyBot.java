@@ -16,8 +16,6 @@ public class MyBot extends Bot {
     private static final int HEAL_AMOUNT = 35;
     private static final int PISTOL_DAMAGE = 10;
 
-    private static int turnCounter = 0;
-
     @Override
     public String getStudentName() {
         return "Midhun Pradeep Nair";
@@ -39,7 +37,6 @@ public class MyBot extends Bot {
 
     @Override
     protected void executeTurn(GameState gameState, Controller controller) {
-        turnCounter++;
 
         GameCharacter character = controller.getGameCharacter();
 
@@ -111,7 +108,6 @@ public class MyBot extends Bot {
 
         ShootInfo optimalInfo = null;
 
-        OUTER:
         for (int offset : getMovementOptions(gameState, startPosition)) {
             Vector2 position = new Vector2(startPosition).add(offset, 0);
             Vector2 t = target.getPosition().sub(position);
@@ -141,7 +137,7 @@ public class MyBot extends Bot {
                                 offset
                         );
 
-                        if (optimalInfo.obstructions == 0) break OUTER;
+                        if (optimalInfo.obstructions == 0) return optimalInfo;
                     }
                 }
             }
