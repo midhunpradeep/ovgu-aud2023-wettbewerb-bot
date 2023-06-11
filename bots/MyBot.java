@@ -6,7 +6,9 @@ import com.gats.manager.Bot;
 import com.gats.manager.Controller;
 import com.gats.simulation.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class MyBot extends Bot {
     private static final float g = 9.81f * 16;
@@ -158,7 +160,7 @@ public class MyBot extends Bot {
     }
 
     private int numberOfObstructions(GameState gameState, Vector2 startPosition, Target target, float v, float angle) {
-        final double DELTA_T = 0.05;
+        final double DELTA_T = (double) 1 / 20;
 
         int tiles = 0;
         Tile lastTile = null;
@@ -297,5 +299,8 @@ public class MyBot extends Bot {
                 return enemy.getPlayerPos();
             }
         }
+    }
+
+    private class BounceInfo {
     }
 }

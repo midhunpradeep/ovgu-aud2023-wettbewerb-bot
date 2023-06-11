@@ -14,3 +14,4 @@
 
 # if the files to be tracked are in subdirectories
 !/bots/MyBot.java
+src/
