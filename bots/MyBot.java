@@ -300,7 +300,4 @@ public class MyBot extends Bot {
             }
         }
     }
-
-    private class BounceInfo {
-    }
 }
