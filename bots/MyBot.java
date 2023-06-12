@@ -41,7 +41,6 @@ public class MyBot extends Bot {
     @Override
     protected void executeTurn(GameState gameState, Controller controller) {
         currentTurn++;
-        System.out.println(currentTurn);
 
         GameCharacter character = controller.getGameCharacter();
 
