@@ -15,6 +15,7 @@ public class MyBot extends Bot {
     private static final float MAX_VELOCITY = 400;
     private static final int HEAL_AMOUNT = 35;
     private static final int PISTOL_DAMAGE = 10;
+    private static final int MIOJLNIR_DAMAGE = 35;
 
     @Override
     public String getStudentName() {
@@ -35,8 +36,12 @@ public class MyBot extends Bot {
     protected void init(GameState gameState) {
     }
 
+    private static int currentTurn = 0;
+
     @Override
     protected void executeTurn(GameState gameState, Controller controller) {
+        currentTurn++;
+        System.out.println(currentTurn);
 
         GameCharacter character = controller.getGameCharacter();
 
@@ -65,7 +70,19 @@ public class MyBot extends Bot {
                 break;
             }
 
-            ShootInfo info = calculateShootInfo(gameState, controller, target);
+            ShootInfo info = null;
+
+            if (character.getWeapon(2).getAmmo() > 0 && target.isEnemy() &&
+                    target.getEnemy().getHealth() <= MIOJLNIR_DAMAGE &&
+                    target.getEnemy().getHealth() > PISTOL_DAMAGE
+            ) {
+                controller.selectWeapon(WeaponType.MIOJLNIR);
+                info = calculateMiojlnirShootInfo(gameState, controller, target);
+            }
+
+            if (info == null) {
+                info = calculateShootInfo(gameState, controller, target);
+            }
 
             if (info == null) continue;
 
@@ -114,6 +131,7 @@ public class MyBot extends Bot {
 
             float minimumVelocity = (float) Math.sqrt(g * (t.y + Math.sqrt(t.y * t.y + t.x * t.x)));
             if (minimumVelocity > MAX_VELOCITY) continue;
+            if (minimumVelocity == 0) continue; // hacky fix for issues when target is right below you
 
             for (int i = 0; i < MAX_ITERATIONS; i++) {
                 float v = MathUtils.lerp(minimumVelocity, MAX_VELOCITY, (float) i / (MAX_ITERATIONS - 1));
@@ -127,7 +145,7 @@ public class MyBot extends Bot {
                 }
 
                 for (float angle : angles) {
-                    int obstructions = numberOfObstructions(gameState, position, target, v, angle);
+                    int obstructions = numberOfObstructionsParabola(gameState, position, target, v, angle);
 
                     if (optimalInfo == null || obstructions < optimalInfo.obstructions) {
                         optimalInfo = new ShootInfo(
@@ -146,6 +164,22 @@ public class MyBot extends Bot {
         return optimalInfo;
     }
 
+    private ShootInfo calculateMiojlnirShootInfo(GameState gameState, Controller controller, Target target) {
+        Vector2 startPosition = controller.getGameCharacter().getPlayerPos();
+
+        for (int offset : getMovementOptions(gameState, startPosition)) {
+            Vector2 position = new Vector2(startPosition).add(offset, 0);
+            Vector2 t = target.getPosition().sub(position);
+
+            float angle = (float) Math.atan2(t.y, t.x);
+            if (numberOfObstructionsLine(gameState, position, target, MAX_VELOCITY, angle) > 0) continue;
+
+            return new ShootInfo(0, new Vector2((float) Math.cos(angle), (float) Math.sin(angle)), 1, offset);
+        }
+
+        return null;
+    }
+
     private float[] calculateAngles(float v, float x, float y) {
         float delta = (float) Math.sqrt(Math.pow(v, 4) - g * (g * x * x + 2 * y * v * v));
 
@@ -155,7 +189,7 @@ public class MyBot extends Bot {
         return new float[] { high, low };
     }
 
-    private int numberOfObstructions(GameState gameState, Vector2 startPosition, Target target, float v, float angle) {
+    private int numberOfObstructionsParabola(GameState gameState, Vector2 startPosition, Target target, float v, float angle) {
         final double DELTA_T = (double) 1 / 30;
 
         int tiles = 0;
@@ -167,6 +201,34 @@ public class MyBot extends Bot {
         for (double t = 0; t < timeToTarget; t += DELTA_T) {
             float x = (float) (startPosition.x + v * t * Math.cos(angle));
             float y = (float) (startPosition.y + v * t * Math.sin(angle) - (0.5) * g * t * t);
+
+            Tile tile = gameState.getTile(worldToTileCoords(new Vector2(x, y)));
+
+            if (tile != null && (lastTile == null || !lastTile.equals(tile))) {
+                if (target.isTile() && tile.equals(target.getTile())) {
+                    break;
+                }
+
+                lastTile = tile;
+                tiles++;
+            }
+        }
+
+        return tiles;
+    }
+
+    private int numberOfObstructionsLine(GameState gameState, Vector2 startPosition, Target target, float v, float angle) {
+        final double DELTA_T = (double) 1 / 30;
+
+        int tiles = 0;
+        Tile lastTile = null;
+
+        Vector2 targetPosition = target.getPosition();
+        double timeToTarget = (targetPosition.x - startPosition.x) / (v * Math.cos(angle));
+
+        for (double t = 0; t < timeToTarget; t += DELTA_T) {
+            float x = (float) (startPosition.x + v * t * Math.cos(angle));
+            float y = (float) (startPosition.y + v * t * Math.sin(angle));
 
             Tile tile = gameState.getTile(worldToTileCoords(new Vector2(x, y)));
 
