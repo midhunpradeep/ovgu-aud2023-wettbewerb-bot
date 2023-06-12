@@ -128,9 +128,10 @@ public class MyBot extends Bot {
             Vector2 position = new Vector2(startPosition).add(offset, 0);
             Vector2 t = target.getPosition().sub(position);
 
+            if (t.x == 0) continue; // hacky fix for issues when target is right below you
+
             float minimumVelocity = (float) Math.sqrt(g * (t.y + Math.sqrt(t.y * t.y + t.x * t.x)));
             if (minimumVelocity > MAX_VELOCITY) continue;
-            if (minimumVelocity == 0) continue; // hacky fix for issues when target is right below you
 
             for (int i = 0; i < MAX_ITERATIONS; i++) {
                 float v = MathUtils.lerp(minimumVelocity, MAX_VELOCITY, (float) i / (MAX_ITERATIONS - 1));
