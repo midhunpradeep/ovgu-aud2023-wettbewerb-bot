@@ -58,8 +58,6 @@ public class MyBot extends Bot {
 
         targets.addAll(enemies);
 
-        controller.selectWeapon(WeaponType.WATER_PISTOL);
-
         ShootInfo optimalTarget = null;
 
         boolean shouldTargetEnemies = true;
@@ -76,9 +74,6 @@ public class MyBot extends Bot {
                     target.getEnemy().getHealth() > PISTOL_DAMAGE
             ) {
                 info = calculateMiojlnirShootInfo(gameState, controller, target);
-                if (info != null) {
-                    controller.selectWeapon(WeaponType.MIOJLNIR);
-                }
             }
 
             if (info == null) {
@@ -112,6 +107,7 @@ public class MyBot extends Bot {
         }
 
         if (optimalTarget != null) {
+            controller.selectWeapon(optimalTarget.weaponType);
             controller.move(optimalTarget.movementOffset);
             controller.aim(optimalTarget.angle, optimalTarget.strength);
             controller.shoot();
@@ -154,7 +150,8 @@ public class MyBot extends Bot {
                                 obstructions,
                                 new Vector2((float) Math.cos(angle), (float) Math.sin(angle)),
                                 v / MAX_VELOCITY,
-                                offset
+                                offset,
+                                WeaponType.WATER_PISTOL
                         );
 
                         if (optimalInfo.obstructions == 0) return optimalInfo;
@@ -176,7 +173,13 @@ public class MyBot extends Bot {
             float angle = (float) Math.atan2(t.y, t.x);
             if (numberOfObstructionsLine(gameState, position, target, MAX_VELOCITY, angle) > 0) continue;
 
-            return new ShootInfo(0, new Vector2((float) Math.cos(angle), (float) Math.sin(angle)), 1, offset);
+            return new ShootInfo(
+                    0,
+                    new Vector2((float) Math.cos(angle), (float) Math.sin(angle)),
+                    1,
+                    offset,
+                    WeaponType.MIOJLNIR
+            );
         }
 
         return null;
@@ -341,12 +344,14 @@ public class MyBot extends Bot {
         public final Vector2 angle;
         public final float strength;
         public final int movementOffset;
+        public final WeaponType weaponType;
 
-        public ShootInfo(int obstructions, Vector2 angle, float strength, int movementOffset) {
+        public ShootInfo(int obstructions, Vector2 angle, float strength, int movementOffset, WeaponType weaponType) {
             this.obstructions = obstructions;
             this.angle = angle;
             this.strength = strength;
             this.movementOffset = movementOffset;
+            this.weaponType = weaponType;
         }
     }
 
