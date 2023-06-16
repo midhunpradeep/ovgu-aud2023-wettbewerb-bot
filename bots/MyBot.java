@@ -99,11 +99,17 @@ public class MyBot extends Bot {
 
             if (optimalTarget == null || info.obstructions < optimalTarget.obstructions) {
                 optimalTarget = info;
+            } else if (info.obstructions == optimalTarget.obstructions) {
+                if (info.target.isEnemy() && optimalTarget.target.isEnemy()) {
+                    if (info.target.getEnemy().getHealth() < optimalTarget.target.getEnemy().getHealth()) {
+                        optimalTarget = info;
+                    }
+                }
             }
 
-            if (optimalTarget.obstructions == 0) {
-                break;
-            }
+//            if (optimalTarget.obstructions == 0) {
+//                break;
+//            }
         }
 
         if (optimalTarget != null) {
@@ -151,7 +157,8 @@ public class MyBot extends Bot {
                                 new Vector2((float) Math.cos(angle), (float) Math.sin(angle)),
                                 v / MAX_VELOCITY,
                                 offset,
-                                WeaponType.WATER_PISTOL
+                                WeaponType.WATER_PISTOL,
+                                target
                         );
 
                         if (optimalInfo.obstructions == 0) return optimalInfo;
@@ -178,7 +185,8 @@ public class MyBot extends Bot {
                     new Vector2((float) Math.cos(angle), (float) Math.sin(angle)),
                     1,
                     offset,
-                    WeaponType.MIOJLNIR
+                    WeaponType.MIOJLNIR,
+                    target
             );
         }
 
@@ -345,13 +353,15 @@ public class MyBot extends Bot {
         public final float strength;
         public final int movementOffset;
         public final WeaponType weaponType;
+        public final Target target;
 
-        public ShootInfo(int obstructions, Vector2 angle, float strength, int movementOffset, WeaponType weaponType) {
+        public ShootInfo(int obstructions, Vector2 angle, float strength, int movementOffset, WeaponType weaponType, Target target) {
             this.obstructions = obstructions;
             this.angle = angle;
             this.strength = strength;
             this.movementOffset = movementOffset;
             this.weaponType = weaponType;
+            this.target = target;
         }
     }
 
