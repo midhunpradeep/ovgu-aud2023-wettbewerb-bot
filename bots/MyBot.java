@@ -75,8 +75,10 @@ public class MyBot extends Bot {
                     target.getEnemy().getHealth() <= MIOJLNIR_DAMAGE &&
                     target.getEnemy().getHealth() > PISTOL_DAMAGE
             ) {
-                controller.selectWeapon(WeaponType.MIOJLNIR);
                 info = calculateMiojlnirShootInfo(gameState, controller, target);
+                if (info != null) {
+                    controller.selectWeapon(WeaponType.MIOJLNIR);
+                }
             }
 
             if (info == null) {
