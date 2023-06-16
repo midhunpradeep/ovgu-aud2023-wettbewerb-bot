@@ -54,7 +54,7 @@ public class MyBot extends Bot {
         targets.sort(comparator);
 
         List<Target> enemies = findEnemies(gameState, character);
-        enemies.sort(comparator);
+        // enemies.sort(comparator);
 
         targets.addAll(enemies);
 
