@@ -195,7 +195,7 @@ public class MyBot extends Bot {
     }
 
     private int numberOfObstructionsParabola(GameState gameState, Vector2 startPosition, Target target, float v, float angle) {
-        final double DELTA_T = (double) 1 / 30;
+        final double DELTA_T = (double) 1 / 90;
 
         int tiles = 0;
         Tile lastTile = null;
@@ -223,7 +223,7 @@ public class MyBot extends Bot {
     }
 
     private int numberOfObstructionsLine(GameState gameState, Vector2 startPosition, Target target, float v, float angle) {
-        final double DELTA_T = (double) 1 / 30;
+        final double DELTA_T = (double) 1 / 90;
 
         int tiles = 0;
         Tile lastTile = null;
