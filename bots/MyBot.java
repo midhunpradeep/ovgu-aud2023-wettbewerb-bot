@@ -116,7 +116,7 @@ public class MyBot extends Bot {
 
     private ShootInfo calculateShootInfo(GameState gameState, Controller controller, Target target) {
         // should be greater than 1
-        final int MAX_ITERATIONS = 200;
+        final int MAX_ITERATIONS = 50;
 
         Vector2 startPosition = controller.getGameCharacter().getPlayerPos();
 
@@ -195,7 +195,7 @@ public class MyBot extends Bot {
     }
 
     private int numberOfObstructionsParabola(GameState gameState, Vector2 startPosition, Target target, float v, float angle) {
-        final double DELTA_T = (double) 1 / 90;
+        final double DELTA_T = (double) 1 / 100;
 
         int tiles = 0;
         Tile lastTile = null;
@@ -223,7 +223,7 @@ public class MyBot extends Bot {
     }
 
     private int numberOfObstructionsLine(GameState gameState, Vector2 startPosition, Target target, float v, float angle) {
-        final double DELTA_T = (double) 1 / 90;
+        final double DELTA_T = (double) 1 / 100;
 
         int tiles = 0;
         Tile lastTile = null;
