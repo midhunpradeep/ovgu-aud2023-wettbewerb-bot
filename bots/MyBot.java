@@ -45,16 +45,13 @@ public class MyBot extends Bot {
         GameCharacter character = controller.getGameCharacter();
 
         List<Target> targets = new ArrayList<>();
-        TargetDistanceComparator comparator = new TargetDistanceComparator(character.getPlayerPos());
-
         if (shouldHeal(character)) {
             targets = findHealthBoxes(gameState);
         }
-
-        targets.sort(comparator);
+        targets.sort(new TargetDistanceComparator(character.getPlayerPos()));
 
         List<Target> enemies = findEnemies(gameState, character);
-        // enemies.sort(comparator);
+        enemies.sort(new TargetHealthComparator());
 
         targets.addAll(enemies);
 
@@ -336,6 +333,13 @@ public class MyBot extends Bot {
         @Override
         public int compare(Target v1, Target v2) {
             return Float.compare(v1.getPosition().dst(origin), v2.getPosition().dst(origin));
+        }
+    }
+
+    private class TargetHealthComparator implements Comparator<Target> {
+        @Override
+        public int compare(Target t1, Target t2) {
+            return Integer.compare(t1.getEnemy().getHealth(), t2.getEnemy().getHealth());
         }
     }
 
