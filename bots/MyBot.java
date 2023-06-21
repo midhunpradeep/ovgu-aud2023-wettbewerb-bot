@@ -48,9 +48,12 @@ public class MyBot extends Bot {
         if (shouldHeal(character)) {
             targets = findHealthBoxes(gameState);
         }
-        targets.sort(new TargetDistanceComparator(character.getPlayerPos()));
+
+        TargetDistanceComparator distanceComparator = new TargetDistanceComparator(character.getPlayerPos());
+        targets.sort(distanceComparator);
 
         List<Target> enemies = findEnemies(gameState, character);
+        enemies.sort(distanceComparator);
         enemies.sort(new TargetHealthComparator());
 
         targets.addAll(enemies);
