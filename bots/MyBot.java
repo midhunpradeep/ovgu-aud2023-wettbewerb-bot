@@ -116,7 +116,7 @@ public class MyBot extends Bot {
 
     private ShootInfo calculateShootInfo(GameState gameState, Controller controller, Target target) {
         // should be greater than 1
-        final int MAX_ITERATIONS = 25;
+        final int MAX_ITERATIONS = 50;
 
         Vector2 startPosition = controller.getGameCharacter().getPlayerPos();
 
